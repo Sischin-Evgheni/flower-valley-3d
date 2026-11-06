@@ -93,6 +93,19 @@ body.panel-open .ui a,body.panel-open .ui button{pointer-events:none}
 .send{justify-self:start;height:48px;font-size:14px;font-weight:500;letter-spacing:.16em;text-transform:uppercase}
 .thanks{margin-top:40px;font-size:20px}
 @media (max-width:820px){.panel-in{padding:18px 20px 48px}.form{grid-template-columns:1fr}.posts a{flex-direction:column;gap:6px}}
+.info{position:absolute;left:calc(44*var(--u));bottom:calc(44*var(--u));display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 18px;border:1.5px solid rgba(245,239,226,.55);border-radius:99px;font-size:12.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;background:rgba(0,0,0,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:background .3s,color .3s}
+.info:hover{background:var(--cream);color:#151510}
+.info b{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;border:1.5px solid currentColor;font-size:12px;letter-spacing:0;text-transform:none;font-family:Georgia,serif;font-style:italic}
+@media (max-width:820px){.info{left:20px;bottom:78px;height:36px;font-size:11px}}
+.langs{display:flex;gap:8px;margin-top:28px}
+.langs button{height:34px;padding:0 14px;border:1.5px solid rgba(245,239,226,.4);border-radius:99px;font-size:12px;letter-spacing:.14em}
+.langs button[aria-pressed="true"]{background:var(--cream);color:#151510;border-color:var(--cream)}
+.proj [data-l]{display:none}.proj [data-l].on{display:block}
+.stack{list-style:none;display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.stack li{padding:8px 14px;border:1px solid rgba(245,239,226,.3);border-radius:99px;font-size:14px}
+.proj h3{margin-top:36px;font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;opacity:.7}
+.proj ul.pts{margin:14px 0 0 18px;line-height:1.7;opacity:.85}
+.links{display:flex;flex-wrap:wrap;gap:14px;margin-top:36px}
 </style>
 <script type="importmap">
 {"imports":{
@@ -113,6 +126,7 @@ body.panel-open .ui a,body.panel-open .ui button{pointer-events:none}
     <p class="cap">Rooted in nature.<br>Built for what’s next.</p>
     <a class="go" href="#work" id="go" aria-label="See our work"><svg viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
   </section>
+  <a class="info" href="#project"><b>i</b><span>Über das Projekt</span></a>
   <div class="corner"><span>Scroll to wander</span><i></i>
     <button class="sound" id="sound" aria-pressed="false" aria-label="Ambient sound"><svg viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18V6L7.5 9.5Z"/><path class="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="x" d="m16 10 4 4m0-4-4 4"/></svg></button>
   </div>
@@ -166,6 +180,33 @@ body.panel-open .ui a,body.panel-open .ui button{pointer-events:none}
     <button class="pill send" type="submit">Send</button>
   </form>
   <p class="thanks" hidden>Thank you — your message has been planted. We’ll be in touch soon.</p>
+</template>
+
+<template id="t-project">
+  <div class="proj">
+    <h2 id="panel-title">Flower Valley 3D</h2>
+    <div class="langs" role="group" aria-label="Sprache"><button type="button" data-set="de" aria-pressed="true">DE</button><button type="button" data-set="ru" aria-pressed="false">RU</button><button type="button" data-set="en" aria-pressed="false">EN</button></div>
+    <div data-l="de" class="on">
+      <p class="lead">Ein Lernprojekt von <b>Evgheni Sischin</b>: eine interaktive 3D-Landingpage für ein fiktives Designstudio („Fernhollow“). Beim Bewegen der Maus oder beim Wischen wächst ein nächtliches Blumental in Echtzeit.</p>
+      <h3>Was ich umgesetzt habe</h3>
+      <ul class="pts"><li>3D-Szene mit Three.js (WebGL) und Leuchteffekt (Bloom)</li><li>Responsives Layout für Desktop und Smartphone</li><li>Navigation über Unterseiten (Work, About, Journal, Contact) ohne Neuladen</li><li>Alles in einer Datei, Veröffentlichung über GitHub Pages</li></ul>
+      <p class="muted">Entwickelt mit Unterstützung von KI-Tools (Claude). Studio und Inhalte sind fiktiv.</p>
+    </div>
+    <div data-l="ru">
+      <p class="lead">Учебный проект <b>Евгения Сищина</b>: интерактивная 3D-страница для вымышленной дизайн-студии («Fernhollow»). При движении мыши или свайпе в реальном времени вырастает ночная долина цветов.</p>
+      <h3>Что я сделал</h3>
+      <ul class="pts"><li>3D-сцена на Three.js (WebGL) с эффектом свечения (Bloom)</li><li>Адаптивная вёрстка для компьютера и смартфона</li><li>Навигация по разделам (Work, About, Journal, Contact) без перезагрузки</li><li>Всё в одном файле, публикация через GitHub Pages</li></ul>
+      <p class="muted">Разработано с помощью ИИ-инструментов (Claude). Студия и тексты вымышленные.</p>
+    </div>
+    <div data-l="en">
+      <p class="lead">A learning project by <b>Evgheni Sischin</b>: an interactive 3D landing page for a fictional design studio ("Fernhollow"). Move the mouse or swipe and a night valley of flowers grows in real time.</p>
+      <h3>What I built</h3>
+      <ul class="pts"><li>3D scene with Three.js (WebGL) and a bloom glow effect</li><li>Responsive layout for desktop and smartphone</li><li>Section navigation (Work, About, Journal, Contact) without page reloads</li><li>Single file, published via GitHub Pages</li></ul>
+      <p class="muted">Built with the help of AI tools (Claude). The studio and its content are fictional.</p>
+    </div>
+    <ul class="stack"><li>Three.js</li><li>WebGL</li><li>JavaScript</li><li>HTML / CSS</li><li>GitHub Pages</li></ul>
+    <div class="links"><a class="pill" href="https://github.com/Sischin-Evgheni/flower-valley-3d" target="_blank" rel="noopener">GitHub →</a><a class="pill" href="https://github.com/Sischin-Evgheni" target="_blank" rel="noopener">Evgheni Sischin</a></div>
+  </div>
 </template>
 
 <div class="loader" id="loader"><span></span></div>
@@ -587,7 +628,7 @@ go.addEventListener('pointerleave', () => { if (!panelOpen) valley.stopHoverTran
 /* ---------------------------------------------------------------- panels (hash routing: #work #about #journal #contact) */
 const panel = document.getElementById('panel'), body = document.getElementById('panel-body');
 const eyebrow = document.getElementById('panel-eyebrow'), closeBtn = document.getElementById('close');
-const names = { work: 'Work', about: 'About', journal: 'Journal', contact: 'Contact' };
+const names = { work: 'Work', about: 'About', journal: 'Journal', contact: 'Contact', project: 'Projekt · Project' };
 let lastFocus = null;
 function openPanel(name) {
   body.replaceChildren(document.getElementById('t-' + name).content.cloneNode(true));
@@ -599,6 +640,12 @@ function openPanel(name) {
   document.body.classList.add('panel-open');
   valley.startHoverTransition();
   const form = body.querySelector('#form');
+  const langs = body.querySelector('.langs');
+  if (langs) {
+    const setL = l => { body.querySelectorAll('[data-l]').forEach(d => d.classList.toggle('on', d.dataset.l === l)); langs.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.set === l)); };
+    const nav = (navigator.language || 'de').slice(0, 2); setL(nav === 'ru' ? 'ru' : nav === 'en' ? 'en' : 'de');
+    langs.addEventListener('click', e => { const b = e.target.closest('button'); if (b) setL(b.dataset.set); });
+  }
   if (form) form.addEventListener('submit', e => { e.preventDefault(); form.hidden = true; body.querySelector('.thanks').hidden = false; });
   setTimeout(() => closeBtn.focus({ preventScroll: true }), 50);
 }

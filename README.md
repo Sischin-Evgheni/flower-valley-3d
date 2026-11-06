@@ -3,13 +3,14 @@
 Eine interaktive 3D-Landingpage für ein fiktives Designstudio („Fernhollow“).
 Beim Bewegen der Maus bzw. beim Wischen wächst ein nächtliches Blumental in Echtzeit.
 
-**Live-Demo:** über GitHub Pages (Settings → Pages → Branch `main`)
+**Live-Demo:** https://sischin-evgheni.github.io/flower-valley-3d/
 
 ## Technik
 - **Three.js** (WebGL) – 3D-Szene, Partikel und Beleuchtung
 - **Post-Processing** – Bloom-Effekt (EffectComposer, UnrealBloomPass)
 - **HTML / CSS / JavaScript** – responsives Layout, Navigation, Animationen
 - Eine einzige Datei (`index.html`), keine Build-Tools nötig
+- Projektbeschreibung direkt auf der Seite (Button „Über das Projekt“) – auf Deutsch, Russisch und Englisch
 
 ## Starten
 `index.html` im Browser öffnen – oder über GitHub Pages aufrufen.
