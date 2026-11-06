@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fernhollow</title>
+<meta name="description" content="A regenerative design studio. Wander through a night valley of flowers that grows as you move.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400&family=Manrope:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--u:min(calc(100vw/1600),calc(100vh/900));--cream:#f5efe2}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;overflow:hidden}
+body{color:var(--cream);font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+#valley{position:fixed;inset:0;touch-action:none}
+.js-canvas-container{position:absolute;inset:0}
+.js-canvas-container canvas{display:block;width:100%!important;height:100%!important}
+.lil-gui{display:none!important}
+.ui{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:0;transition:opacity 1.6s ease}
+.ui.on{opacity:1}
+.ui a,.ui button{pointer-events:auto}
+header{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;padding:calc(24*var(--u)) calc(44*var(--u)) 0}
+.logo{font-size:calc(26*var(--u));font-weight:500;letter-spacing:-.02em}
+nav{display:flex;align-items:center;gap:calc(44*var(--u));font-size:calc(14.5*var(--u));font-weight:500;letter-spacing:.16em;text-transform:uppercase}
+nav a:not(.pill){transition:opacity .2s}nav a:not(.pill):hover{opacity:.6}
+.pill{display:inline-flex;align-items:center;height:calc(46*var(--u));padding:0 calc(26*var(--u));border-radius:99px;background:var(--cream);color:#151510;transition:transform .25s}
+.pill:hover{transform:translateY(-1px)}
+.hero{position:absolute;left:0;right:0;top:50%;transform:translateY(-46%);display:flex;flex-direction:column;align-items:center;text-align:center}
+h1{font:400 calc(158*var(--u))/.92 Antonio,"Arial Narrow",sans-serif;letter-spacing:-.012em;white-space:nowrap}
+.cap{margin-top:calc(48*var(--u));font-size:calc(20*var(--u));line-height:1.3}
+.go{display:grid;place-items:center;margin-top:calc(34*var(--u));width:calc(58*var(--u));height:calc(58*var(--u));border:1.5px solid var(--cream);border-radius:50%;transition:background .3s,color .3s}
+.go:hover{background:var(--cream);color:#151510}
+.go svg{width:calc(22*var(--u));height:calc(22*var(--u));fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.corner{position:absolute;right:calc(44*var(--u));bottom:calc(44*var(--u));display:flex;align-items:center;gap:calc(18*var(--u));font-size:calc(12.5*var(--u));font-weight:500;letter-spacing:.16em;text-transform:uppercase}
+.corner i{width:1px;height:calc(26*var(--u));background:rgba(245,239,226,.45)}
+.sound{display:grid;place-items:center;width:calc(28*var(--u));height:calc(28*var(--u))}
+.sound svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.sound .w{transition:opacity .3s}.sound[aria-pressed=false] .w{opacity:0}
+.sound[aria-pressed=true] .x{opacity:0}
+.loader{position:fixed;inset:0;z-index:3;display:grid;place-items:center;background:#000;transition:opacity 1s ease;pointer-events:none}
+.loader.gone{opacity:0}
+.loader span{width:calc(9*var(--u));height:calc(9*var(--u));min-width:6px;min-height:6px;border-radius:50%;background:var(--cream);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(.4);opacity:.4}}
+a:focus-visible,button:focus-visible{outline:2px solid var(--cream);outline-offset:3px}
+@media (max-width:820px){
+  :root{--u:1px}
+  header{padding:18px 18px 0}
+  nav a:not(.pill){display:none}
+  .pill{height:40px;padding:0 18px;font-size:12px}
+  .hero{left:20px;right:20px}
+  .corner{left:20px;justify-content:center}
+  h1{font-size:clamp(64px,19vw,96px);white-space:normal}
+  .cap{font-size:17px}
+  .corner{right:20px;bottom:30px;font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){.loader span{animation:none}}
+.ui{transition:opacity 1.6s ease,filter .6s}
+body.panel-open .ui{opacity:.0!important;pointer-events:none}
+body.panel-open .ui a,body.panel-open .ui button{pointer-events:none}
+.panel{position:fixed;inset:0;z-index:4;display:flex;justify-content:center;overflow-y:auto;background:rgba(0,0,0,.5);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);opacity:0;visibility:hidden;transition:opacity .6s ease,visibility 0s .6s}
+.panel{scrollbar-width:thin;scrollbar-color:rgba(245,239,226,.3) transparent}
+.panel.open{opacity:1;visibility:visible;transition:opacity .6s ease}
+.panel-in{width:min(1100px,100%);padding:calc(40*var(--u)) calc(44*var(--u)) 60px;transform:translateY(24px);transition:transform .7s cubic-bezier(.2,.7,.2,1)}
+.panel.open .panel-in{transform:none}
+.panel-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:calc(60*var(--u))}
+.eyebrow{font-size:13px;font-weight:500;letter-spacing:.16em;text-transform:uppercase;opacity:.7}
+.close{display:grid;place-items:center;width:48px;height:48px;border:1.5px solid var(--cream);border-radius:50%;transition:background .3s,color .3s}
+.close:hover{background:var(--cream);color:#151510}
+.close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.panel h2{font:400 clamp(52px,calc(110*var(--u)),120px)/.95 Antonio,"Arial Narrow",sans-serif;letter-spacing:-.01em}
+.lead{max-width:620px;margin-top:24px;font-size:18px;line-height:1.5;opacity:.85}
+.muted{margin-top:40px;opacity:.6}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:24px;margin-top:48px}
+.card{display:flex;flex-direction:column;gap:6px}
+.thumb{display:block;aspect-ratio:4/3;border-radius:14px;margin-bottom:10px;background:radial-gradient(circle at 30% 35%,var(--a) 0 8%,transparent 30%),radial-gradient(circle at 70% 65%,var(--a) 0 5%,transparent 24%),var(--b);transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.card:hover .thumb{transform:scale(1.03)}
+.card b{font-size:20px;font-weight:500}.card small{font-size:14px;opacity:.6}
+.facts{list-style:none;display:flex;flex-wrap:wrap;gap:48px;margin-top:48px}
+.facts b{display:block;font:400 64px/1 Antonio,sans-serif}.facts span{opacity:.7}
+.posts{list-style:none;margin-top:40px;border-top:1px solid rgba(245,239,226,.2)}
+.posts a{display:flex;gap:32px;align-items:baseline;padding:24px 0;border-bottom:1px solid rgba(245,239,226,.2);transition:padding .3s}
+.posts a:hover{padding-left:12px}
+.posts time{flex:none;width:90px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.6}
+.posts b{font-size:22px;font-weight:500}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:720px;margin-top:40px}
+.form label{display:flex;flex-direction:column;gap:8px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;opacity:.9}
+.form .wide{grid-column:1/-1}
+.form input,.form textarea{font:inherit;font-size:17px;letter-spacing:0;text-transform:none;color:var(--cream);background:rgba(245,239,226,.06);border:1px solid rgba(245,239,226,.3);border-radius:12px;padding:14px 16px;resize:vertical}
+.form input:focus,.form textarea:focus{outline:none;border-color:var(--cream)}
+.send{justify-self:start;height:48px;font-size:14px;font-weight:500;letter-spacing:.16em;text-transform:uppercase}
+.thanks{margin-top:40px;font-size:20px}
+@media (max-width:820px){.panel-in{padding:18px 20px 48px}.form{grid-template-columns:1fr}.posts a{flex-direction:column;gap:6px}}
+</style>
+<script type="importmap">
+{"imports":{
+  "three":"https://unpkg.com/three@0.154.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.154.0/examples/jsm/"
+}}
+</script>
+</head>
+<body>
+<div id="valley" aria-hidden="true"><div class="js-canvas-container"></div></div>
+<div class="ui" id="ui">
+  <header>
+    <a class="logo" href="#" aria-label="Fernhollow">Fernhollow</a>
+    <nav aria-label="Main"><a href="#work">Work</a><a href="#about">About</a><a href="#journal">Journal</a><a class="pill" href="#contact">Let’s talk</a></nav>
+  </header>
+  <section class="hero">
+    <h1>Grown, not built.</h1>
+    <p class="cap">Rooted in nature.<br>Built for what’s next.</p>
+    <a class="go" href="#work" id="go" aria-label="See our work"><svg viewBox="0 0 24 24"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a>
+  </section>
+  <div class="corner"><span>Scroll to wander</span><i></i>
+    <button class="sound" id="sound" aria-pressed="false" aria-label="Ambient sound"><svg viewBox="0 0 24 24"><path d="M4 9.5v5h3.5L12 18V6L7.5 9.5Z"/><path class="w" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/><path class="x" d="m16 10 4 4m0-4-4 4"/></svg></button>
+  </div>
+</div>
+<div class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" aria-hidden="true">
+  <div class="panel-in">
+    <div class="panel-top">
+      <span class="eyebrow" id="panel-eyebrow"></span>
+      <button class="close" id="close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    </div>
+    <div id="panel-body"></div>
+  </div>
+</div>
+
+<template id="t-work">
+  <h2 id="panel-title">Selected work</h2>
+  <p class="lead">Places, brands and products that grow with the people who use them.</p>
+  <div class="cards">
+    <a class="card" href="#contact"><span class="thumb" style="--a:#e8607f;--b:#2a5b2f"></span><b>Meadowline</b><small>Landscape identity · 2026</small></a>
+    <a class="card" href="#contact"><span class="thumb" style="--a:#f08a3c;--b:#1f3d24"></span><b>Ember &amp; Oak</b><small>Regenerative farm brand · 2025</small></a>
+    <a class="card" href="#contact"><span class="thumb" style="--a:#9c84f0;--b:#173323"></span><b>Lumen Commons</b><small>Community garden platform · 2025</small></a>
+    <a class="card" href="#contact"><span class="thumb" style="--a:#f3d067;--b:#24402a"></span><b>Seedvault</b><small>Biodiversity archive · 2024</small></a>
+  </div>
+</template>
+<template id="t-about">
+  <h2 id="panel-title">We design like gardeners.</h2>
+  <p class="lead">Fernhollow is a regenerative design studio. We plant ideas, tend them with care and let them grow into brands, spaces and digital products that give back more than they take.</p>
+  <ul class="facts">
+    <li><b>12</b><span>years of growing</span></li>
+    <li><b>140+</b><span>projects planted</span></li>
+    <li><b>3</b><span>studios, one ecosystem</span></li>
+  </ul>
+  <p class="muted">Rooted in nature. Built for what’s next.</p>
+</template>
+<template id="t-journal">
+  <h2 id="panel-title">Journal</h2>
+  <ul class="posts">
+    <li><a href="#contact"><time>Oct 2026</time><b>Designing for seasons, not launches</b></a></li>
+    <li><a href="#contact"><time>Aug 2026</time><b>What a meadow taught us about design systems</b></a></li>
+    <li><a href="#contact"><time>May 2026</time><b>Slow interfaces for fast lives</b></a></li>
+    <li><a href="#contact"><time>Feb 2026</time><b>Regeneration is a process, not a feature</b></a></li>
+  </ul>
+</template>
+<template id="t-contact">
+  <h2 id="panel-title">Let’s grow something.</h2>
+  <p class="lead">Tell us a little about your project and we’ll get back within two days.</p>
+  <form class="form" id="form">
+    <label>Name<input name="name" required autocomplete="name"></label>
+    <label>Email<input name="email" type="email" required autocomplete="email"></label>
+    <label class="wide">Project<textarea name="msg" rows="4" required></textarea></label>
+    <button class="pill send" type="submit">Send</button>
+  </form>
+  <p class="thanks" hidden>Thank you — your message has been planted. We’ll be in touch soon.</p>
+</template>
+
+<div class="loader" id="loader"><span></span></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+
+THREE.ColorManagement.enabled = false;
+
+/* ---------------------------------------------------------------- terrain */
+function hash(x, y) { const h = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return h - Math.floor(h); }
+function vnoise(x, y) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y) { let s = 0, a = .5, f = 1; for (let i = 0; i < 4; i++) { s += a * vnoise(x * f, y * f); f *= 2.03; a *= .5; } return s; }
+// a winding ring-shaped meadow; the camera loops around it looking down at the flowers
+const ringR = th => 26 + 4 * Math.sin(3 * th) + 2 * Math.sin(5 * th + 1.3);
+const valleyDist = (x, z) => Math.hypot(x, z) - ringR(Math.atan2(z, x));
+function height(x, z) {
+  const wall = Math.max(0, Math.abs(valleyDist(x, z)) - 9);
+  return fbm(x * .08 + 10, z * .08) * 1.6 - .8 + Math.pow(wall, 1.3) * .22;
+}
+
+/* ---------------------------------------------------------------- shaders */
+const FOG = new THREE.Vector3(0, 0, 0);
+
+const flowerVert = /* glsl */`
+uniform float uTime,uGrow,uDisperse,uHeight,uAspect,uMouseOn,uMaxSize;
+uniform vec2 uMouse;
+attribute vec3 aColor; attribute float aSize,aSeed,aKind;
+varying vec3 vColor; varying float vGlow,vSeed,vKind,vFog,vNear;
+void main(){
+  vec3 p=position;
+  float s1=fract(aSeed*13.7),s2=fract(aSeed*71.3),s3=fract(aSeed*5.31);
+  float sway=(aKind<.5?.035:.02);
+  p.x+=sin(uTime*.9+aSeed*40.+p.z*.3)*sway*(.5+s1);
+  p.z+=cos(uTime*.7+aSeed*33.+p.x*.3)*sway*(.5+s2);
+  float dsp=uDisperse*(1.-aKind);
+  vec3 dir=normalize(vec3(s1-.5,.45+s2*.9,s3-.5));
+  p+=dir*dsp*(.8+s3*2.6);
+  p+=vec3(sin(uTime*.6+aSeed*20.),sin(uTime*.8+aSeed*30.),cos(uTime*.5+aSeed*25.))*.25*dsp;
+  vec4 mv=modelViewMatrix*vec4(p,1.);
+  float dist=max(-mv.z,.001);
+  // flowers open up as the camera approaches, leaves fill in from further back
+  float grow = aKind<.5 ? mix(.3,1.,1.-smoothstep(7.,20.,dist))
+                        : mix(.55,1.,smoothstep(2.,9.,dist));
+  float size=aSize*grow*uGrow;
+  if(aKind<.5) size=mix(size,aSize*.45*uGrow,uDisperse);
+  else size*=1.-uDisperse*.35;
+  vec4 clip=projectionMatrix*mv;
+  vec2 ndc=clip.xy/clip.w;
+  vec2 asp=vec2(uAspect,1.);
+  vec2 d=(ndc-uMouse)*asp;
+  float l=length(d);
+  float push=exp(-l*l*10.)*.08*uMouseOn;
+  ndc+=(d/(l+1e-4))/asp*push;
+  vGlow=exp(-l*l*45.)*uMouseOn;
+  clip.xy=ndc*clip.w;
+  gl_Position=clip;
+  gl_PointSize=min(size*uHeight*.5*projectionMatrix[1][1]/dist,uMaxSize);
+  vFog=smoothstep(9.,21.,dist);
+  vNear=smoothstep(.6,1.4,dist);
+  vColor=aColor; vSeed=aSeed; vKind=aKind;
+}`;
+const flowerFrag = /* glsl */`
+uniform float uDisperse;
+varying vec3 vColor; varying float vGlow,vSeed,vKind,vFog,vNear;
+void main(){
+  if(vFog>.995||vNear<.05) discard;
+  vec2 uv=gl_PointCoord*2.-1.;
+  float r=length(uv);
+  vec3 col;
+  if(vKind<.5){
+    float ang=atan(uv.y,uv.x)+vSeed*6.2831;
+    float n=5.+floor(fract(vSeed*17.)*4.);
+    float pet=pow(abs(cos(ang*n*.5)),1.3);
+    float shape=mix(.42+.58*pet,.55,uDisperse);
+    if(r>shape) discard;
+    float t=r/shape;
+    col=vColor*(.55+.55*t)*(.85+.2*pet);
+    float core=1.-smoothstep(.1,.2,r);
+    col=mix(col,vec3(1.,.78,.3)*.85,core*(1.-uDisperse));
+    col=mix(col,vColor*1.6+.25,uDisperse);
+  }else{
+    float n=3.+floor(fract(vSeed*7.)*3.);
+    float base=vSeed*6.2831, shade=-1.;
+    for(int k=0;k<5;k++){
+      if(float(k)>=n) break;
+      float ang=base+float(k)*6.2831/n+sin(vSeed*90.+float(k))*.35;
+      vec2 q=mat2(cos(ang),sin(ang),-sin(ang),cos(ang))*uv;
+      vec2 e=(q-vec2(.5,0.))/vec2(.5,.19+.06*fract(vSeed*31.));
+      float l=dot(e,e);
+      if(l<1.) shade=max(shade,(1.-l)*.7+.3*smoothstep(1.,0.,q.x)-abs(e.y)*.25);
+    }
+    if(shade<0.) discard;
+    col=vColor*(.45+.75*shade);
+  }
+  col+=vGlow*vec3(1.,.88,.7)*.7;
+  col*=1.-vFog;
+  gl_FragColor=vec4(col,1.);
+}`;
+
+const terrainVert = `varying float vDist;varying vec2 vXZ;
+void main(){vXZ=position.xz;vec4 mv=modelViewMatrix*vec4(position,1.);vDist=-mv.z;gl_Position=projectionMatrix*mv;}`;
+const terrainFrag = `varying float vDist;varying vec2 vXZ;
+void main(){vec3 c=vec3(.012,.028,.014)*(.7+.6*fract(sin(dot(floor(vXZ*6.),vec2(12.9,78.2)))*43758.5));
+gl_FragColor=vec4(c*(1.-smoothstep(9.,21.,vDist)),1.);}`;
+
+const dustVert = `uniform vec3 uCam;uniform float uTime,uHeight;attribute float aSeed;varying float vA;
+void main(){vec3 p=position+vec3(sin(uTime*.2+aSeed*10.)*.4,uTime*.08*(.3+fract(aSeed*3.)),cos(uTime*.17+aSeed*7.)*.4);
+vec3 box=vec3(20.,6.,20.);p=mod(p-uCam+box*.5,box)-box*.5+uCam;
+vec4 mv=modelViewMatrix*vec4(p,1.);float d=-mv.z;gl_Position=projectionMatrix*mv;
+gl_PointSize=(.015+fract(aSeed*9.)*.02)*uHeight*.5*projectionMatrix[1][1]/max(d,.1);
+vA=(.5+.5*sin(uTime*1.3+aSeed*50.))*(1.-smoothstep(6.,12.,d))*smoothstep(.3,1.,d)*.6;}`;
+const dustFrag = `varying float vA;void main(){float r=length(gl_PointCoord-.5);float a=smoothstep(.5,0.,r)*vA;gl_FragColor=vec4(vec3(1.,.92,.75)*a,a);}`;
+
+const finalShader = {
+  uniforms: { tDiffuse: { value: null }, uTime: { value: 0 }, uVig: { value: 0 }, uSplit: { value: .004 },
+    uRes: { value: new THREE.Vector2(1, 1) }, uBlur: { value: 12 }, uAspect: { value: 1 } },
+  vertexShader: `varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader: `uniform sampler2D tDiffuse;uniform float uTime,uVig,uSplit,uBlur,uAspect;uniform vec2 uRes;varying vec2 vUv;
+  void main(){
+    vec2 c=vUv-.5;float d=length(c);
+    // tilt-shift style focus: sharp ellipse in the middle, soft out-of-focus edges
+    vec2 cc=c*vec2(uAspect*.62,1.);
+    float m=smoothstep(.14,.7,length(cc));
+    float rad=m*m*uBlur*(1.+uVig*.4);
+    vec2 sp=c*uSplit*(.3+d*2.5)*(.4+m);
+    vec3 acc=vec3(0.);
+    for(int i=0;i<20;i++){
+      float fi=float(i),rr=sqrt((fi+.5)/20.)*rad,th=fi*2.39996;
+      vec2 o=vec2(cos(th),sin(th))*rr/uRes;
+      acc+=vec3(texture2D(tDiffuse,vUv+o+sp).r,texture2D(tDiffuse,vUv+o).g,texture2D(tDiffuse,vUv+o-sp).b);
+    }
+    vec3 col=acc/20.;
+    float n=fract(sin(dot(vUv*vec2(12.9898,78.233)+fract(uTime)*7.,vec2(1.,1.7)))*43758.5453);
+    col+=(n-.5)*.03;
+    float r0=.95-uVig*.3;float v=1.-smoothstep(r0-.6,r0,d);
+    col*=mix(.25,1.,v);gl_FragColor=vec4(col,1.);
+  }`
+};
+
+/* ---------------------------------------------------------------- ambient audio */
+const audio = {
+  isInitialized: false, muted: true, muffled: false, ctx: null,
+  initAudio() { this.isInitialized = true; },
+  _build() {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = this.ctx = new AC();
+    this.master = ctx.createGain(); this.master.gain.value = 0;
+    this.filter = ctx.createBiquadFilter(); this.filter.type = 'lowpass'; this.filter.Q.value = .7;
+    this.filter.frequency.value = this.muffled ? 520 : 16000;
+    this.filter.connect(this.master); this.master.connect(ctx.destination);
+    // wind: looping brown noise through a drifting band-pass
+    const len = ctx.sampleRate * 6, buf = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); let last = 0; for (let i = 0; i < len; i++) { last = (last + .02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; } }
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 500; bp.Q.value = .6;
+    const lfo = ctx.createOscillator(); lfo.frequency.value = .07; const lg = ctx.createGain(); lg.gain.value = 250;
+    lfo.connect(lg).connect(bp.frequency);
+    const wg = ctx.createGain(); wg.gain.value = .5;
+    src.connect(bp).connect(wg).connect(this.filter); src.start(); lfo.start();
+    // soft pad
+    [110, 164.81, 220, 277.18, 329.63].forEach((f, i) => {
+      const o = ctx.createOscillator(); o.frequency.value = f; o.detune.value = (Math.random() - .5) * 8;
+      const g = ctx.createGain(); g.gain.value = .022;
+      const l = ctx.createOscillator(); l.frequency.value = .03 + i * .017; const lgn = ctx.createGain(); lgn.gain.value = .018;
+      l.connect(lgn).connect(g.gain); o.connect(g).connect(this.filter); o.start(); l.start();
+    });
+    // crickets
+    const chirp = () => {
+      if (!this.muted) {
+        const t = ctx.currentTime + .05, n = 3 + Math.floor(Math.random() * 4);
+        const o = ctx.createOscillator(); o.frequency.value = 4300 + Math.random() * 600;
+        const g = ctx.createGain(); g.gain.value = 0;
+        for (let k = 0; k < n; k++) { const s = t + k * .07; g.gain.setValueAtTime(0, s); g.gain.linearRampToValueAtTime(.01, s + .012); g.gain.linearRampToValueAtTime(0, s + .045); }
+        o.connect(g);
+        if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = Math.random() * 1.6 - .8; g.connect(p).connect(this.filter); } else g.connect(this.filter);
+        o.start(t); o.stop(t + n * .07 + .1);
+      }
+      setTimeout(chirp, 400 + Math.random() * 2200);
+    };
+    chirp();
+  },
+  toggleMute() {
+    if (!this.ctx) this._build();
+    this.ctx.resume();
+    this.muted = !this.muted;
+    const t = this.ctx.currentTime, g = this.master.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
+    g.setTargetAtTime(this.muted ? 0 : .7, t, this.muted ? .35 : .8);
+    return this.muted;
+  },
+  setMuffle(on) {
+    this.muffled = on;
+    if (!this.filter) return;
+    const t = this.ctx.currentTime, f = this.filter.frequency;
+    f.cancelScheduledValues(t); f.setValueAtTime(f.value, t);
+    f.setTargetAtTime(on ? 520 : 16000, t, .45);
+  }
+};
+const audioStore = () => audio;
+
+/* ---------------------------------------------------------------- valley */
+class Valley {
+  constructor(root, onLoaded, onIntroDone) {
+    this.root = root; this.onLoaded = onLoaded; this.onIntroDone = onIntroDone;
+    this.progress = 0; this.scrollVel = 0; this.speedS = 0;
+    this.hover = 0; this.hoverTarget = 0;
+    this.mouse = new THREE.Vector2(0, 0); this.mouseS = new THREE.Vector2(0, 0); this.mouseOn = 0; this.mouseOnT = 0;
+    this.introT = 0; this.INTRO = 3.6;
+    if (/[?&]still/.test(location.search)) this.introT = this.INTRO;   // debug: skip the intro
+    this.mobile = innerWidth <= 820;
+    this.init();
+  }
+  startHoverTransition() { this.hoverTarget = 1; audio.setMuffle(true); }
+  stopHoverTransition() { this.hoverTarget = 0; audio.setMuffle(false); }
+
+  init() {
+    const container = this.root.querySelector('.js-canvas-container');
+    const r = this.renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+    r.outputColorSpace = THREE.LinearSRGBColorSpace;
+    this.pr = Math.min(devicePixelRatio, this.mobile ? 1.5 : 1.75);
+    r.setPixelRatio(this.pr);
+    container.appendChild(r.domElement);
+
+    const scene = this.scene = new THREE.Scene();
+    scene.background = new THREE.Color(0, 0, 0);
+    const cam = this.camera = new THREE.PerspectiveCamera(50, 1, .05, 200);
+
+    this.buildPath(); this.buildTerrain(); this.buildMeadow(); this.buildDust();
+
+    const composer = this.composer = new EffectComposer(r);
+    composer.addPass(new RenderPass(scene, cam));
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .35, .45, .72);
+    composer.addPass(this.bloom);
+    this.final = new ShaderPass(finalShader);
+    composer.addPass(this.final);
+
+    this.resize(); addEventListener('resize', () => this.resize());
+    this.bindInput();
+
+    this.clock = new THREE.Clock();
+    this.loop = this.loop.bind(this);
+    this.update(0); composer.render();
+    requestAnimationFrame(() => { this.onLoaded && this.onLoaded(); this.clock.start(); requestAnimationFrame(this.loop); });
+  }
+
+  buildPath() {
+    const ground = [], N = 240;
+    for (let i = 0; i < N; i++) {
+      const th = i / N * Math.PI * 2, R = ringR(th), x = Math.cos(th) * R, z = Math.sin(th) * R;
+      ground.push(new THREE.Vector3(x, height(x, z), z));
+    }
+    this.curve = new THREE.CatmullRomCurve3(ground, true, 'centripetal');
+    this.curve.arcLengthDivisions = 3000;
+  }
+
+  buildTerrain() {
+    const g = new THREE.PlaneGeometry(110, 110, 220, 220); g.rotateX(-Math.PI / 2);
+    const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) p.setY(i, height(p.getX(i), p.getZ(i)) - .05);
+    g.computeBoundingSphere();
+    this.scene.add(new THREE.Mesh(g, new THREE.ShaderMaterial({ vertexShader: terrainVert, fragmentShader: terrainFrag })));
+  }
+
+  buildMeadow() {
+    const NL = this.mobile ? 110000 : 220000, NF = this.mobile ? 35000 : 70000, N = NL + NF;
+    const pos = new Float32Array(N * 3), col = new Float32Array(N * 3), size = new Float32Array(N), seed = new Float32Array(N), kind = new Float32Array(N);
+    const pal = [
+      [1, .42, .62], [.95, .28, .5], [1, .48, .22], [1, .62, .5],
+      [1, .84, .28], [.62, .5, .98], [.8, .62, 1], [.92, .86, .8]
+    ];
+    const BAND = 15;
+    let i = 0;
+    while (i < N) {
+      const leaf = i < NL;
+      const th = Math.random() * Math.PI * 2, o = (Math.random() * 2 - 1) * BAND;
+      const R = ringR(th) + o, x = Math.cos(th) * R, z = Math.sin(th) * R;
+      let c, s, y = height(x, z);
+      if (leaf) {
+        const k = Math.random(), tone = fbm(x * .15 + 70, z * .15);
+        c = [.04 + k * .1 + tone * .05, .1 + k * .22 + tone * .08, .035 + k * .07];
+        if (Math.random() < .12) c = [c[0] * 1.6 + .04, c[1] * 1.3, c[2] * .8];          // yellowish leaves
+        s = .16 + Math.random() * .22;
+        y += Math.random() * .22;
+      } else {
+        // flowers grow in dense single-colour patches, plus a mixed ribbon along the path
+        const onPath = Math.abs(o) < 1.6 && Math.random() < .55;
+        const patch = fbm(x * .2 + 3, z * .2);
+        if (!onPath && patch < .6 && Math.random() > .02) continue;
+        let pi;
+        if (onPath) pi = [4, 5, 6, 7][Math.floor(Math.random() * 4)];
+        else pi = Math.floor(fbm(x * .12 + 40, z * .12) * pal.length * 2.6) % pal.length;
+        if (Math.random() < .08) pi = Math.floor(Math.random() * pal.length);
+        const v = .6 + Math.random() * .3;
+        c = pal[pi].map(q => q * v);
+        s = .07 + Math.pow(Math.random(), 2) * .11;
+        y += .2 + Math.random() * .2;
+      }
+      pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z;
+      col.set(c, i * 3); size[i] = s; seed[i] = Math.random(); kind[i] = leaf ? 1 : 0;
+      i++;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+    g.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
+    g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+    g.setAttribute('aKind', new THREE.BufferAttribute(kind, 1));
+    this.fu = {
+      uTime: { value: 0 }, uGrow: { value: 0 }, uDisperse: { value: 0 }, uHeight: { value: 1 }, uAspect: { value: 1 },
+      uMouse: { value: new THREE.Vector2() }, uMouseOn: { value: 0 }, uMaxSize: { value: 140 }
+    };
+    const pts = new THREE.Points(g, new THREE.ShaderMaterial({ vertexShader: flowerVert, fragmentShader: flowerFrag, uniforms: this.fu }));
+    pts.frustumCulled = false;
+    this.scene.add(pts);
+  }
+
+  buildDust() {
+    const N = this.mobile ? 400 : 900, pos = new Float32Array(N * 3), seed = new Float32Array(N);
+    for (let i = 0; i < N; i++) { pos[i * 3] = Math.random() * 20; pos[i * 3 + 1] = Math.random() * 6; pos[i * 3 + 2] = Math.random() * 20; seed[i] = Math.random(); }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+    this.du = { uCam: { value: new THREE.Vector3() }, uTime: { value: 0 }, uHeight: { value: 1 } };
+    const p = new THREE.Points(g, new THREE.ShaderMaterial({ vertexShader: dustVert, fragmentShader: dustFrag, uniforms: this.du, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    p.frustumCulled = false; this.scene.add(p);
+  }
+
+  bindInput() {
+    const k = .00008;
+    addEventListener('wheel', e => { this.scrollVel = THREE.MathUtils.clamp(this.scrollVel + e.deltaY * k, -.03, .03); }, { passive: true });
+    let ty = null;
+    addEventListener('touchstart', e => { ty = e.touches[0].clientY; }, { passive: true });
+    addEventListener('touchmove', e => {
+      if (ty === null) return; const y = e.touches[0].clientY;
+      this.scrollVel = THREE.MathUtils.clamp(this.scrollVel + (ty - y) * k * 3, -.03, .03); ty = y;
+    }, { passive: true });
+    addEventListener('touchend', () => { ty = null; });
+    addEventListener('pointermove', e => {
+      this.mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+      this.mouseOnT = e.pointerType === 'touch' ? 0 : 1;
+    });
+    document.documentElement.addEventListener('pointerleave', () => { this.mouseOnT = 0; });
+  }
+
+  resize() {
+    const w = innerWidth, h = innerHeight;
+    this.renderer.setSize(w, h, false); this.composer.setPixelRatio(this.pr); this.composer.setSize(w, h);
+    this.camera.aspect = w / h; this.camera.fov = w / h < 1 ? 68 : 50; this.camera.updateProjectionMatrix();
+    this.fu.uHeight.value = h * this.pr; this.fu.uAspect.value = w / h; this.fu.uMaxSize.value = 160 * this.pr;
+    this.du.uHeight.value = h * this.pr;
+    const u = this.final.uniforms;
+    u.uRes.value.set(w * this.pr, h * this.pr); u.uAspect.value = w / h; u.uBlur.value = Math.max(w, h) * this.pr * .0075;
+  }
+
+  update(dt) {
+    const t = this.clock ? this.clock.elapsedTime : 0;
+    this.introT += dt;
+    const ip = Math.min(1, this.introT / this.INTRO), ie = 1 - Math.pow(1 - ip, 3);
+
+    this.hover += (this.hoverTarget - this.hover) * (1 - Math.exp(-dt * 1.6));
+    const hv = this.hover * this.hover * (3 - 2 * this.hover);
+
+    this.scrollVel *= Math.exp(-dt * 2.2);
+    const speed = (.0016 + this.scrollVel) * (1 - hv) * (.3 + .7 * ie);
+    this.progress = ((this.progress + speed * dt) % 1 + 1) % 1;
+    this.speedS += (Math.min(1, Math.abs(speed) / .012) - this.speedS) * (1 - Math.exp(-dt * 3));
+
+    // camera hovers above the meadow and looks steeply down a little way ahead
+    const cam = this.camera;
+    const p = this.curve.getPointAt(this.progress), look = this.curve.getPointAt((this.progress + .045) % 1);
+    p.y += 4.6 + 6 * (1 - ie);
+    look.y += .2;
+    cam.position.copy(p); cam.lookAt(look);
+    this.mouseS.lerp(this.mouse, 1 - Math.exp(-dt * 3));
+    cam.rotateY(-this.mouseS.x * .06); cam.rotateX(this.mouseS.y * .04);
+    cam.updateMatrixWorld();
+
+    this.mouseOn += (this.mouseOnT - this.mouseOn) * (1 - Math.exp(-dt * 4));
+    const f = this.fu;
+    f.uTime.value = t; f.uGrow.value = ie; f.uDisperse.value = hv;
+    f.uMouse.value.copy(this.mouse); f.uMouseOn.value = this.mouseOn * (1 - hv * .7);
+    this.du.uTime.value = t; this.du.uCam.value.copy(cam.position);
+    const u = this.final.uniforms;
+    u.uTime.value = t; u.uVig.value = this.speedS + hv * .3; u.uSplit.value = .0035 + this.speedS * .01;
+    this.bloom.strength = .35 + hv * .9;
+
+    if (ip >= 1 && this.onIntroDone) this.onIntroDone();
+  }
+
+  loop() {
+    const dt = Math.min(this.clock.getDelta(), .1);
+    this.update(dt); this.composer.render();
+    requestAnimationFrame(this.loop);
+  }
+}
+
+/* ---------------------------------------------------------------- boot */
+let introShown = false;
+const valley = new Valley(document.getElementById('valley'),
+  () => document.getElementById('loader').classList.add('gone'),
+  () => { if (!introShown) { introShown = true; document.getElementById('ui').classList.add('on'); } });
+audioStore().initAudio();
+const sound = document.getElementById('sound');
+sound.onclick = () => { const s = audioStore(); if (!s.isInitialized) return; const muted = s.toggleMute(); sound.setAttribute('aria-pressed', String(!muted)); };
+const go = document.getElementById('go');
+let panelOpen = false;
+go.addEventListener('pointerenter', () => valley.startHoverTransition());
+go.addEventListener('pointerleave', () => { if (!panelOpen) valley.stopHoverTransition(); });
+
+/* ---------------------------------------------------------------- panels (hash routing: #work #about #journal #contact) */
+const panel = document.getElementById('panel'), body = document.getElementById('panel-body');
+const eyebrow = document.getElementById('panel-eyebrow'), closeBtn = document.getElementById('close');
+const names = { work: 'Work', about: 'About', journal: 'Journal', contact: 'Contact' };
+let lastFocus = null;
+function openPanel(name) {
+  body.replaceChildren(document.getElementById('t-' + name).content.cloneNode(true));
+  eyebrow.textContent = names[name];
+  panel.scrollTop = 0;
+  if (!panelOpen) lastFocus = document.activeElement;
+  panelOpen = true;
+  panel.classList.add('open'); panel.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('panel-open');
+  valley.startHoverTransition();
+  const form = body.querySelector('#form');
+  if (form) form.addEventListener('submit', e => { e.preventDefault(); form.hidden = true; body.querySelector('.thanks').hidden = false; });
+  setTimeout(() => closeBtn.focus({ preventScroll: true }), 50);
+}
+function closePanel() {
+  if (!panelOpen) return;
+  panelOpen = false;
+  panel.classList.remove('open'); panel.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('panel-open');
+  valley.stopHoverTransition();
+  if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+}
+function route() { const h = location.hash.slice(1); if (names[h]) openPanel(h); else closePanel(); }
+function goHome() { history.pushState(null, '', location.pathname + location.search); route(); }
+addEventListener('hashchange', route);
+closeBtn.addEventListener('click', goHome);
+document.querySelector('.logo').addEventListener('click', e => { e.preventDefault(); goHome(); });
+panel.addEventListener('click', e => { if (e.target === panel) goHome(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && panelOpen) goHome(); });
+route();
+</script>
+</body>
+</html>
